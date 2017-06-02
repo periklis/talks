@@ -97,9 +97,9 @@ class UserBox implements React.Component {
 
 ## Think data flow as flux
 
-![Flux approach](https://facebook.github.io/flux/img/flux-simple-f8-diagram-with-client-action-1300w.png)
+![Flux approach](./media/2017-06-mayday-reactjs/flux-simple-diagram.png)
+___Source: [Facebook - Flux](https://facebook.github.io/flux/docs/overview.html)___
 
-- Handle state beyond ```setState```
 - Write sane, testable apps with an one-way data flow
 - Use one of the common flux approaches e.g. Redux, Mobx
 
