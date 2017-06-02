@@ -13,9 +13,9 @@ title: Thinking in React
 ```
 const Namebox = (props) => {
     return (
-      <Label fontWeight={props.fontWeight}>
+      <NameBox fontWeight={props.fontWeight}>
         ${props.labelContent}
-      </Label>
+      </NameBox>
     );
 }
 
@@ -32,7 +32,7 @@ function NameBox(name) {
 ## Building views by Composition
 
 ```
-class UserBox implements React.Component {
+class UserBox extends React.Component {
   render() {
     return (
       <FancyBox label={this.props.labelContent}>
@@ -51,7 +51,7 @@ class UserBox implements React.Component {
 ## State travels top down
 
 ```
-class App implements React.Component {
+class App extends React.Component {
   updateUserBox() {
     this.setState({
       user: {firstname: 'John', surname: 'doe'}
@@ -75,7 +75,7 @@ class App implements React.Component {
 ## State events travel bottom up
 
 ```
-class UserBox implements React.Component {
+class UserBox extends React.Component {
   handleInputChange(e) {
     this.props.onInputChange(e.target.value);
   }
