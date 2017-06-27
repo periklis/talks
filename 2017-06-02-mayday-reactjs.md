@@ -158,7 +158,7 @@ ___Source: [Facebook - Flux](https://facebook.github.io/flux/docs/overview.html)
 
 Periklis Tsirakidis
 
-Github: github.com/Pericles
+Github: github.com/periklis
 
 ---
 
