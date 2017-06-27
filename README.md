@@ -1,5 +1,10 @@
 # 2017
 
+## Upcoming
+
+### [Why bother and learn Rust Lang?]()
+Lightning talk for slack time brown bag session
+
 ## Slack time 2017
 
 ### [Thinking in React: Conceptual Model & Starter Decisions](./public/2017-06-mayday-reactjs/index.html)
