@@ -13,20 +13,20 @@ Periklis Tsirakidis
 ## Short Introduction to Rust Lang
 
 - Systems Programming Language since 2004
-- 1.0 Release since mid 2015
-- Robust memory leak free programming
-- Safe data race free multi-threading programming
-- Follows Zero Abstraction Cost Philosophy
+- 1.0 since mid 2015, currently 1.18
+- Promise I: Memory leak free programming
+- Promise II: Safe multi-threading programming
+- Promise III: Zero Cost Abstractions
 
 ---
 
-## How does Rust succeed on its promises?
+## How Rust succeeds on its promises?
 
 - Simple rules about pointer aliasing and data structure mutation
 - Rules enforced through a sophisticated type system
 - Enhanced front end compiler support on top of LLVM
 - Strong focus on programming language ergonomics
-- Long research project history 2004 -2008
+- Long research project history 2004 - 2008
 
 ---
 
@@ -34,7 +34,9 @@ Periklis Tsirakidis
 
 ---
 
-## Memory Safety I: No null pointer dereferences
+## Memory Safety I
+
+No null pointer dereferences
 
 ----
 
@@ -59,7 +61,7 @@ int main(int argc, char* argv[]) {
 
 ----
 
-### The solution in Rust: Option< T >
+### In Rust we like Option< T >
 
 ```
 fn func() -> Option<T> {...}
@@ -75,20 +77,22 @@ fn main () {
 
 ---
 
-## Memory Safety II: No dangling pointers
+## Memory Safety II
+
+No dangling pointers
 
 ----
 
 ### C/C++: Dangling Pointer Strikes Back
 
 ```
-void proc_str(char* buf) {
+void borrow_to_friend(char* buf) {
     // process buffer
     free(buf);
 }
 
 int main(int argc, char* argv[]) {
-    proc_str(arg[0]);
+    borrow_to_friend(arg[0]);
 
     // arg[0] now dangling
 }
@@ -100,20 +104,21 @@ int main(int argc, char* argv[]) {
 ### Rust I: Move me, clone me, drop me
 
 ```
-fn func(str: String) {
-    // Process str
-} // Drop str
+fn give_to_friend(book: String) { } // Drop book
 
 fn main {
     // Move temporary to str
-    let str = String::from("Hello World");
+    let book = String::from("Learn Rust in 21 days");
 
-    // Clone str into str2
-    let str2 = str.clone();
+    // Assignment moves not copy
+    let same_book = book;
 
-    // Move str to arg str
-    func(str);
-} // Drop str2
+    // Clone other_book into other_book
+    let other_book = same_book.clone();
+
+    // Move str1 to arg str
+    give_to_friend(same_book);
+} // Drop other_book, empty same_book and empty book
 ```
 
 ----
@@ -122,18 +127,18 @@ fn main {
 
 ```
 // str is string slice type: &[]
-fn proc_str(str: str) {}
+fn borrow_to_friend(str: str) {
+    borrow_to_friends_friend(&str.as_byes());
+}
 
-fn proc_bytes(buf: &[u8]){}
+fn borrow_to_friends_friend(buf: &[u8]){}
 
 fn main() {
-    // Move temporary to str
-    let str = String::from("Hello World");
+    // Move temporary to book_title
+    let book_title = String::from("Alice in Wonderland");
 
     // Borrow a string slice reference here
-    proc_str(&str);
-
-    proc_bytes(&str.as_byes());
+    borrow_to_friend(&book_title);
 }
 ```
 
@@ -142,33 +147,43 @@ fn main() {
 ### Rust III: Take me mutable but nobody else
 
 ```
-fn mut_str(str: mut str) {}
+fn add_apocalypse_date(str: mut str) {}
 
 fn main() {
-    let str = String::from("Hello World);
+    let book_title = String::from("Apocalypse");
 
-    mut_str(&mut str);
+    add_apocalypse_date(&mut book_title);
 
     // ERROR
-    let other_str = &mut str;
+    let other_apocalypse = &mut book_title;
 }
 
 ```
 
 ---
 
-## Memory Safety III: No buffer overruns
+## Memory Safety III
+
+No buffer overruns
 
 ----
 
 ### C/C++: Programmers overrun buffers
 
 ```
-void proc_str(char* buf, int len) {
+void check_str(char* buf, int len) {
     for(int i = 0; i <= len; i++) {
         // buf[i]
         // Programmer overruns the buffer on i = len
     }
+}
+
+int main(int arc, char* argv[]) {
+    char* book = "Learn Overruns in 21 Days";
+    char* other = "Smash me in 21 Days";
+
+    // Overrun and smash my stack
+    check_str(book, 25);
 }
 ```
 
@@ -177,18 +192,18 @@ void proc_str(char* buf, int len) {
 ### Rust: Take a slice leave the rest
 
 ```
-fn proc_str(str: str) {}
+fn check_str(str: str) {}
 
 fn main() {
-    let str = String::from("Hello World);
+    let book = String::from("Learn Slicing in 21 Days");
 
-    proc_str(&[0..4]);
+    check_str(&[0..4]);
 }
 ```
 
 ---
 
-## Safe Multithreading by default
+## Safe Multi-threading by default
 
 ----
 
@@ -199,11 +214,11 @@ fn main() {
   - Either you move contents into a thread
   - Or you borrow any immutable references
   - Or you borrow one mutable reference but no other else
-- Let the compile check the rules FTW
+- Let the compiler check the rules FTW
 
 ---
 
-## Not only a thing for C/C++ Developers?
+## Why not only for C/C++ Developers?
 
 - Wake up: We hit the End Moore's Law by 2005
 - Your PHP, Go, Ruby, etc. is as memory leak free as their impls/vms
@@ -211,23 +226,24 @@ fn main() {
 
 ---
 
-## Not only a thing for C/C++ Devs?
+## Why not only for C/C++ Developers?
 
 - Concurrent and parallel programming styles are going to stay
 - Rust enables productive writing of memory safe and concurrent/parallel applications
 - Rust enables the same productivity thanks to Cargo, Crates, Rustup, Rustc
-- Takes an async/await approach like Scala for web application programming
+- Takes an async/await approach like Scala for web application programming (Currently on Nightly)
 
 ---
 
 ## Rust Key Facts
 
 - Express Ownership explicitly!
-- Borrowing down the stack!
+- No dangling but borrowing down the stack!
+- No overruns but trust your slice!
 - No Exceptions but Result< T >!
-- No Null but Option< T >!
-- No Garbage Collection!
-- No Green Threads!
+- No null but Option< T >!
+- No garbage collection but Box, Rc, Arc, RefCell!
+- No green threads but sane standard library support!
 
 ---
 
@@ -240,3 +256,11 @@ Github: github.com/periklis
 ---
 
 ## Further reading
+
+- [Jim Blady - Why Rust?](http://www.oreilly.com/programming/free/files/why-rust.pdf)
+- [Aaron Turon - Standford Seminar on Rust Lang](https://www.youtube.com/watch?v=O5vzLKg7y-k)
+- [Repository - Rust-Learning](https://github.com/ctjhoa/rust-learning)
+- [Rust by Example](https://rustbyexample.com/)
+- [Official Rust Land Documentation](https://doc.rust-lang.org/book/second-edition/ch01-00-introduction.html)
+- [Official Cargo Guide](http://doc.crates.io/guide.html)
+- [Official Rust Lang Reference](https://doc.rust-lang.org/stable/reference/)
