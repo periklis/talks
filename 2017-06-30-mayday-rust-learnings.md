@@ -17,14 +17,15 @@ Periklis Tsirakidis
 - Promise I: Memory leak free programming
 - Promise II: Safe multi-threading programming
 - Promise III: Zero Cost Abstractions
+- Promise I + II + III = Great Craftmanship
 
 ---
 
-## How Rust succeeds on its promises?
+## How Rust fulfills its promises?
 
-- Simple rules about pointer aliasing and data structure mutation
+- Simple rules for pointer aliasing and data mutation
 - Rules enforced through a sophisticated type system
-- Enhanced front end compiler support on top of LLVM
+- Front and mid end compiler support on top of LLVM
 - Strong focus on programming language ergonomics
 - Long research project history 2004 - 2008
 
@@ -43,10 +44,10 @@ No null pointer dereferences
 ### Null Pointer in C/C++: A billion dollar mistake
 
 ```
-int* func() {...}
+obj* func_and_alloc() {...}
 
 int main(int argc, char* argv[]) {
-    int* p = func();
+    obj* p = func_and_alloc();
 
     if (p != null) {
       // Do conditional stuff
@@ -61,7 +62,7 @@ int main(int argc, char* argv[]) {
 
 ----
 
-### In Rust we like Option< T >
+### In Rust we love RAII and Option< T >
 
 ```
 fn func() -> Option<T> {...}
@@ -70,7 +71,7 @@ fn main () {
     match func() {
         Some(t) => { // do something with t },
         None => { // do something with nothng }
-    }
+    } // Deallocate Option and T here
 }
 
 ```
@@ -127,18 +128,18 @@ fn main {
 
 ```
 // str is string slice type: &[]
-fn borrow_to_friend(str: str) {
-    borrow_to_friends_friend(&str.as_byes());
+fn borrow_to_a_friend(str: str) {
+    borrow_to_friends_friend(&str.as_bytes());
 }
 
-fn borrow_to_friends_friend(buf: &[u8]){}
+fn borrow_to_a_friends_friend(buf: &[u8]){}
 
 fn main() {
     // Move temporary to book_title
     let book_title = String::from("Alice in Wonderland");
 
     // Borrow a string slice reference here
-    borrow_to_friend(&book_title);
+    borrow_to_a_friend(&book_title);
 }
 ```
 
@@ -182,7 +183,7 @@ int main(int arc, char* argv[]) {
     char* book = "Learn Overruns in 21 Days";
     char* other = "Smash me in 21 Days";
 
-    // Overrun and smash my stack
+    // Overrun book char buffer
     check_str(book, 25);
 }
 ```
@@ -213,25 +214,40 @@ fn main() {
 - Simple rules:
   - Either you move contents into a thread
   - Or you borrow any immutable references
-  - Or you borrow one mutable reference but no other else
+  - Or you borrow only once a mutable reference
 - Let the compiler check the rules FTW
+- MPSC: Share messages not data
+- Mutex< T >, Arc< T >
 
 ---
 
 ## Why not only for C/C++ Developers?
 
-- Wake up: We hit the End Moore's Law by 2005
-- Your PHP, Go, Ruby, etc. is as memory leak free as their impls/vms
-- Your PHP, Go, Ruby, etc. works on a costly abstraction above the OS and machine level
+- Wake up: We hit the end of Moore's Law by 2005
+- Your PHP, Go, Ruby, etc. is as memory leak free as their impls/VMs/GCs
+- Your PHP, Go, Ruby, etc. works on a costly abstraction above the OS/machine
+- Use the power of a great cross-plattform std library and ecosystem
+
 
 ---
 
 ## Why not only for C/C++ Developers?
 
-- Concurrent and parallel programming styles are going to stay
+- Concurrent and parallel programming styles are going to stay, e.g.
+  - Actors based concurrency
+  - Futures/Tasks/Executors based concurrency
+  - Map and reduce style data parallelism
+  - SIMD
+  - Offloading to GPU cores
 - Rust enables productive writing of memory safe and concurrent/parallel applications
+
+---
+
+## Why important for web engineering?
+
 - Rust enables the same productivity thanks to Cargo, Crates, Rustup, Rustc
-- Takes an async/await approach like Scala for web application programming (Currently on Nightly)
+- Targets futures/async/await like Scala/Finagle (Currently on Nightly only, est. release end 2017)
+- Support for cross compilation targets: MSVC, IOS, ARM (IoT), WebAssembly & [more](https://forge.rust-lang.org/platform-support.html)
 
 ---
 
@@ -264,3 +280,4 @@ Github: github.com/periklis
 - [Official Rust Land Documentation](https://doc.rust-lang.org/book/second-edition/ch01-00-introduction.html)
 - [Official Cargo Guide](http://doc.crates.io/guide.html)
 - [Official Rust Lang Reference](https://doc.rust-lang.org/stable/reference/)
+- [RustBelt: Securing the Foundations of the Rust Programming Language (PDF)](https://www.mpi-sws.org/~dreyer/papers/rustbelt/paper.pdf)
