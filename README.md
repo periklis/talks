@@ -2,10 +2,11 @@
 
 ## Upcoming
 
-### [Why bother and learn Rust Lang?]()
-Lightning talk for slack time brown bag session
 
 ## Slack time 2017
+
+### [Why bother and learn Rust Lang?](./public/2017-07-14-mayday-rust-learnings/index.html)
+[(Slides)](./public/2017-07-14-mayday-rust-leadnings/slides.pdf)
 
 ### [Thinking in React: Conceptual Model & Starter Decisions](./public/2017-06-mayday-reactjs/index.html)
 [(Slides)](./public/2017-06-mayday-reactjs/slides.pdf)
