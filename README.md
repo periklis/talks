@@ -2,6 +2,8 @@
 
 ## Upcoming
 
+### [Rust: Writing microservices with Hyper on tokio-rs stack]()
+An introductory talk to how the Rust ecosystems handels web workloads and a comparison to Twitter's Finagle stack.
 
 ## Slack time 2017
 
