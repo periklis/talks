@@ -3,9 +3,12 @@
 ## Upcoming
 
 ### [Rust: Writing microservices with Hyper on tokio-rs stack]()
-An introductory talk to how the Rust ecosystems handels web workloads and a comparison to Twitter's Finagle stack.
+An introductory talk to how the Rust ecosystems handles web workloads and a comparison to Twitter's Finagle stack.
 
 ## Slack time 2017
+
+### [Nix for Developers: Solving daily jobs with nix-env and nix-shell](./public/2017-10-27-slackday-nix-intro/index.html)
+[(Slides)](./public/2017-10-27-slackday-nix-intro/slides.pdf)
 
 ### [Why bother and learn Rust Lang?](./public/2017-07-14-mayday-rust-learnings/index.html)
 [(Slides)](./public/2017-07-14-mayday-rust-leadnings/slides.pdf)
