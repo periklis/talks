@@ -178,7 +178,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE=/PATH/TO/Emscripten.cmake ../src
 #include <string>
 #include <vector>
 
-namespace mayflower  {
+namespace acme  {
 namespace wasm {
 
 class ImageProcessor {
@@ -198,7 +198,7 @@ class ImageProcessor {
   std::string path_;
 };
 } // namespace wasm
-} // namespace mayflower
+} // namespace acme
 
 #endif  // IMAGEPROCESSOR_H_
 
@@ -217,12 +217,12 @@ EMSCRIPTEN_BINDINGS(ImageProcessor){
 emscripten::register_vector<int>("VectorInt");
 emscripten::register_map<std::string, long>("MapStringLong");
 
-emscripten::class_<mayflower::wasm::ImageProcessor>("ImageProcessor")
+emscripten::class_<acme::wasm::ImageProcessor>("ImageProcessor")
   .constructor<std::string>()
-  .function("dimensions", &mayflower::wasm::ImageProcessor::dimensions)
-  .function("histogram", &mayflower::wasm::ImageProcessor::histogram)
-  .function("resize", &mayflower::wasm::ImageProcessor::resize)
-  .function("crop", &mayflower::wasm::ImageProcessor::crop);
+  .function("dimensions", &acme::wasm::ImageProcessor::dimensions)
+  .function("histogram", &acme::wasm::ImageProcessor::histogram)
+  .function("resize", &acme::wasm::ImageProcessor::resize)
+  .function("crop", &acme::wasm::ImageProcessor::crop);
 }
 
 ```
