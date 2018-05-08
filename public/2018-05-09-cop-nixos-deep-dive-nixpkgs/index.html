@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Deep Dive Nixpkgs Bootstrap</title>
+        <link rel="stylesheet" href="./css/reveal.css">
+        <link rel="stylesheet" href="./css/theme/solarized.css" id="theme">
+        <link rel="stylesheet" href="./css/highlight/zenburn.css">
+        <link rel="stylesheet" href="./css/print/paper.css" type="text/css" media="print">
+
+
+    </head>
+    <body>
+
+        <div class="reveal">
+            <div class="slides"><section  data-markdown><script type="text/template">
+
+
+# Deep Dive Nixpkgs Bootstrap
+
+Periklis Tsirakidis
+</script></section><section  data-markdown><script type="text/template">
+## Motivation
+
+- Provide a simple overview of nixpkgs bootstrap
+- Give a framework to understand the design
+- Usage hints for packaging
+</script></section><section ><section data-markdown><script type="text/template">
+## Nixpkgs key facts
+
+- Single repository for all packages incl. DSL-packages
+  - e.g. gcc and haskellPackages.pandoc
+
+- Single repository for all supported platforms
+  - e.g. x86_64-linux and x86_64-darwin
+
+- Single repository for all library code
+  - e.g. debug, strings, vm, release routines
+</script></section><section data-markdown><script type="text/template">
+
+### Simple Overview - What kicks in when?
+
+```
+nix-env -f <nixpkgs> ....
+```
+
+1. Check Nix version compatibility
+2. Handle environment impurities
+   - Any `LocalSystem` given by user?
+   - Any extra configuration available?
+   - Any overlays available?
+   - Request for cross compilation?
+3. Boot nixpkgs
+   - Import all nixpkgs libraries
+   - Import all top-level entries
+   - Boot the stdenv
+   - Fix the whole nixpkgs attr-set
+</script></section><section data-markdown><script type="text/template">
+### Detail Overview: The bootstrap
+
+```
+nixpkgs/default.nix
+├── ./pkgs/top-level/impure.nix
+    ├── ~/.config/nixpkgs/config.nix
+    ├── ~/.config/nixpkgs/overlays.nix
+    ├── ~/.config/nixpkgs/overlays/*.nix
+    ├── ./pkgs/top-level/default.nix
+        ├── nixpkgs/lib/*.nix
+        ├── ./pkgs/stdenv/default.nix
+        ├── ./pkgs/top-level/stage.nix
+        |   ├── ./pkgs/stdenv/adapters.nix
+        |   ├── ./pkgs/build-support/trivial-builders.nix
+        |   ├── ./pkgs/top-level/splice.nix
+        |   ├── ./pkgs/top-level/all-packages.nix
+        |   ├── ./pkgs/top-level/aliases.nix
+        ├── ./pkgs/stdenv/booter.nix
+```
+</script></section><section data-markdown><script type="text/template">
+### Detail Overview: Enter nixpkgs
+
+#### nixpkgs/default.nix
+
+##### Why do we check the nix version on bootstrap?
+
+- Nixpkgs uses builtins thus backward compatibility limit
+- Nixpkgs is huge thus evaluation performance is critical
+</script></section><section data-markdown><script type="text/template">
+### Detail Overview: Enter Top-Level
+
+#### pkgs/top-level/impure.nix
+```nix
+homeDir = builtins.getEnv "HOME";
+```
+```nix
+config ? let
+      configFile = getEnv "NIXPKGS_CONFIG";
+      configFile2 = homeDir + "/.config/nixpkgs/config.nix";
+      configFile3 = homeDir + "/.nixpkgs/config.nix"; # obsolete
+      in ...
+```
+```nix
+overlays ? let
+      isDir = path: pathExists (path + "/.");
+      pathOverlays = try (toString <nixpkgs-overlays>) "";
+      homeOverlaysFile = homeDir +"/.config/nixpkgs/overlays.nix";
+      homeOverlaysDir = homeDir + "/.config/nixpkgs/overlays";
+      overlays = ...
+```
+```nix
+localSystem={ system = builtins.currentSystem; } // localSystem;
+```
+Central point to handle all impurities and side effects before pure functional evaluation!</script></section><section data-markdown><script type="text/template">
+### Detail Overview: Enter Top-Level
+
+#### pkgs/top-level/default.nix
+
+```nix
+{
+  localSystem, crossSystem ? null, config ? {}, overlays ? []
+, stdenvStages ? import ../stdenv } @ args:
+```
+```nix
+# Make nixpkgs a function to accept: --argstr withXYZ true
+allPackages = newArgs: import ./stage.nix ({
+  inherit lib nixpkgsFun;
+} // newArgs);
+```
+```nix
+# Import the stdenv boot facility, just a foldLeft
+boot = import ../stdenv/booter.nix { inherit lib allPackages; };
+```
+```nix
+# Produce list of stdenv stages for a local/cross system:
+# Each stdenv is separated in a list of functions called stages.
+stages = stdenvStages {
+  inherit lib localSystem crossSystem config overlays;
+};
+```
+```nix
+# Boot the stdenv with a fix attrset of all packages
+pkgs = boot stages;
+```
+</script></section><section data-markdown><script type="text/template">
+### Detail Overview: Enter Stdenv
+
+What is actually the standard environment?
+
+- A set of tools to build and package other software,
+  - coreutils, gcc/clang, bash, gzip
+- A set of important library functions
+  - mkDerivation
+- A set of adapters, e.g:
+  - overrideCC, overrideSetup, keepDebugInfo
+- A closure for platform impurities (darwin)
+  - /usr/lib/libSystem.B.dylib
+  - MACOSX_DEPLOYMENT_TARGET=10.10
+</script></section><section data-markdown><script type="text/template">
+### Detail Overview: Enter Darwin Stdenv
+
+#### An augment symfony in six stages
+
+1. Boostrap Tools: sh, bzip2, mkdir, cpio
+2. Stage 0: Bintools, coreuitls, gnugrep
+3. Stage 1: LibSystem, Libc++, Libc++-abi
+4. Stage 2: dyld, xnu, libdispatch, icu, launchd
+5. Stage 3: bash, libiconv, locale
+6. Stage 4: llvm (clang, etc.)
+7. Stage 5: stdenv + cc-wrapper
+</script></section><section data-markdown><script type="text/template">
+### Detail Overview: Enter stage.nix
+
+#### A function composition down to a computed fix point
+
+```nix
+toFix = lib.foldl' (lib.flip lib.extends) (self: {}) ([
+    stdenvBootstappingAndPlatforms
+    platformCompat
+    stdenvAdapters
+    trivialBuilders
+    splice
+    allPackages
+    aliases
+    configOverrides
+  ] ++ overlays ++ [
+    stdenvOverrides ]);
+
+in
+  # Return the complete set of packages.
+lib.fix toFix
+```
+```
+# Remember:
+fix = f: let x = f x; in x;
+
+extends = f: rattrs: self:
+  let super = rattrs self;
+  in super // f self super;
+```
+
+```nix
+# Every function above has the same structure:
+f = self: super: { ... }
+```
+</script></section></section><section ><section data-markdown><script type="text/template">
+## Usage Hints
+</script></section><section data-markdown><script type="text/template">
+### Override stdenv only in derivation arguments
+
+Wrong:
+```nix
+self: super: {
+  stdenv = super.stdenv.overrideCC super.stdenv self.clang;
+}
+
+# error: infinite recursion encountered, at undefined position
+```
+Correct:
+```nix
+self: super: {
+  hello = super.hello.override {
+    stdenv = super.overrideCC super.stdenv self.gcc;
+  };
+}
+```
+</script></section><section data-markdown><script type="text/template">
+### Select override mechanism with care
+
+| Method                | Purpose                                                      |
+| --------------------  | -------------------------------------------------------      |
+| `override`            | Override arguments passed to derivations                     |
+| `overrideAttrs`       | Override only attrs passed to `mkDerivation`                 |
+| `overrideDerivation`  | Override final attrs passed to raw `derivation` builtin      |
+| `lib.makeOverridable` | Provide `override` and/or default args to your own functions |
+
+</script></section><section data-markdown><script type="text/template">
+### Select override mechanism with care
+
+```nix
+self: super: {
+  hello = super.hello.override {
+    withI18n = true;
+    withMusl = self.musl123;
+  };
+
+  helloWithDebug = super.hello.ovverideAttrs (oldAttrs: rec {
+    separateDebugInfo = true;
+  });
+
+  helloGithub = super.hello.overrideDerivation (finalAttrs: rec {
+    version = "1.2.3";
+    src = super.fetchFromGithub {...};
+  });
+}
+```
+</script></section></section><section  data-markdown><script type="text/template">
+# So long and thanks for the fish!
+
+Periklis Tsirakidis
+
+Github: [github.com/periklis](https://github.com/periklis)
+
+Slides: [periklis.github.io/talks](https://periklis.github.io/talks/)
+</script></section></div>
+        </div>
+
+        <script src="./lib/js/head.min.js"></script>
+        <script src="./js/reveal.js"></script>
+
+        <script>
+            function extend() {
+              var target = {};
+              for (var i = 0; i < arguments.length; i++) {
+                var source = arguments[i];
+                for (var key in source) {
+                  if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                  }
+                }
+              }
+              return target;
+            }
+
+            // Optional libraries used to extend on reveal.js
+            var deps = [
+              { src: './lib/js/classList.js', condition: function() { return !document.body.classList; } },
+              { src: './plugin/markdown/marked.js', condition: function() { return !!document.querySelector('[data-markdown]'); } },
+              { src: './plugin/markdown/markdown.js', condition: function() { return !!document.querySelector('[data-markdown]'); } },
+              { src: './plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+              { src: './plugin/zoom-js/zoom.js', async: true },
+              { src: './plugin/notes/notes.js', async: true },
+              { src: './plugin/math/math.js', async: true }
+            ];
+
+            // default options to init reveal.js
+            var defaultOptions = {
+              controls: true,
+              progress: true,
+              history: true,
+              center: true,
+              transition: 'default', // none/fade/slide/convex/concave/zoom
+              dependencies: deps
+            };
+
+            // options from URL query string
+            var queryOptions = Reveal.getQueryHash() || {};
+
+            var options = {};
+            options = extend(defaultOptions, options, queryOptions);
+        </script>
+
+
+        <script>
+            Reveal.initialize(options);
+        </script>
+    </body>
+</html>
