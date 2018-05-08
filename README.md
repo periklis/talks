@@ -1,9 +1,15 @@
-# 2017
-
-## Upcoming
+# Upcoming
 
 ### [Rust: Writing microservices with Hyper on tokio-rs stack]()
 An introductory talk to how the Rust ecosystems handles web workloads and a comparison to Twitter's Finagle stack.
+
+# 2018
+
+## Slack Time 2018
+
+### [Deep Dive into NixPkgs Bootstrap Process](./public/2018-05-09-cop-nixos-deep-dive-nixpkgs)
+
+# 2017
 
 ## Slack time 2017
 
