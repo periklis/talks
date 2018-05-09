@@ -2,11 +2,11 @@
 author:
 - Periklis Tsirakidis
 title: Deep Dive Nixpkgs Bootstrap
-theme: solarized
+theme: serif
 ---
 
 
-# Deep Dive Nixpkgs Bootstrap
+## Deep Dive Nixpkgs Bootstrap
 
 Periklis Tsirakidis
 
@@ -14,13 +14,13 @@ Periklis Tsirakidis
 
 ## Motivation
 
-- Provide a simple overview of nixpkgs bootstrap
-- Give a framework to understand the design
-- Usage hints for packaging
+- Provide an overview of Nixpkgs bootstrap process
+- Explain the design of Nixpkgs bootstrap process
+- List some usage hints for package overrides
 
 ---
 
-## Nixpkgs key facts
+## Nixpkgs: key facts
 
 - Single repository for all packages incl. DSL-packages
   - e.g. gcc and haskellPackages.pandoc
@@ -34,7 +34,7 @@ Periklis Tsirakidis
 ----
 
 
-### Simple Overview - What kicks in when?
+### Overview - What kicks in when?
 
 ```
 nix-env -f <nixpkgs> ....
@@ -42,15 +42,14 @@ nix-env -f <nixpkgs> ....
 
 1. Check Nix version compatibility
 2. Handle environment impurities
-   - Any `LocalSystem` given by user?
+   - Any Local-/CrossSystem given by user?
    - Any extra configuration available?
    - Any overlays available?
-   - Request for cross compilation?
-3. Boot nixpkgs
-   - Import all nixpkgs libraries
-   - Import all top-level entries
+3. Boot stdenv and all packages
+   - Import nixpkgs libraries
+   - Import top-level entries
    - Boot the stdenv
-   - Fix the whole nixpkgs attr-set
+   - Provide a fix point of nixpkgs incl. stdenv
 
 ----
 
@@ -74,22 +73,28 @@ nixpkgs/default.nix
         ├── ./pkgs/stdenv/booter.nix
 ```
 
+A trace of the imports during the nixpkgs bootstrap process.
+
 ----
 
 ### Detail Overview: Enter nixpkgs
 
-#### nixpkgs/default.nix
+#### File: nixpkgs/default.nix
 
 ##### Why do we check the nix version on bootstrap?
 
 - Nixpkgs uses builtins thus backward compatibility limit
 - Nixpkgs is huge thus evaluation performance is critical
+- Future Nix language changes
 
 ----
 
 ### Detail Overview: Enter Top-Level
 
-#### pkgs/top-level/impure.nix
+#### File: pkgs/top-level/impure.nix
+```nix
+{ localSystem ? builtins.intersectAttrs { ... } args}
+```
 ```nix
 homeDir = builtins.getEnv "HOME";
 ```
@@ -116,12 +121,11 @@ Central point to handle all impurities and side effects before pure functional e
 
 ### Detail Overview: Enter Top-Level
 
-#### pkgs/top-level/default.nix
+#### File: pkgs/top-level/default.nix
 
 ```nix
-{
-  localSystem, crossSystem ? null, config ? {}, overlays ? []
-, stdenvStages ? import ../stdenv } @ args:
+{ # Import the stdenv stages
+  stdenvStages ? import ../stdenv } @ args:
 ```
 ```nix
 # Make nixpkgs a function to accept: --argstr withXYZ true
@@ -191,11 +195,8 @@ toFix = lib.foldl' (lib.flip lib.extends) (self: {}) ([
     allPackages
     aliases
     configOverrides
-  ] ++ overlays ++ [
-    stdenvOverrides ]);
-
-in
-  # Return the complete set of packages.
+  ] ++ overlays ++ [ stdenvOverrides ]);
+in # Return the complete set of packages.
 lib.fix toFix
 ```
 ```
@@ -203,8 +204,7 @@ lib.fix toFix
 fix = f: let x = f x; in x;
 
 extends = f: rattrs: self:
-  let super = rattrs self;
-  in super // f self super;
+  let super = rattrs self; in super // f self super;
 ```
 
 ```nix
@@ -218,7 +218,7 @@ f = self: super: { ... }
 
 ----
 
-### Override stdenv only in derivation arguments
+### Override stdenv only in derivation argument list
 
 Wrong:
 ```nix
@@ -239,7 +239,7 @@ self: super: {
 
 ----
 
-### Select override mechanism with care
+### Select override mechanism
 
 | Method                | Purpose                                                      |
 | --------------------  | -------------------------------------------------------      |
@@ -273,7 +273,7 @@ self: super: {
 
 ---
 
-# So long and thanks for the fish!
+### So long and thanks for the fish!
 
 Periklis Tsirakidis
 
