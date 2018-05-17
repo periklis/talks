@@ -2,6 +2,7 @@
 author:
 - Periklis Tsirakidis
 title: Why bother and learn Rust?
+theme: solarized
 ---
 
 # Why bother and learn Rust?
@@ -10,10 +11,10 @@ Periklis Tsirakidis & Stefan Lau
 
 ---
 
-## Short Introduction to Rust Lang
+## About Rust Lang
 
 - Systems Programming Language since 2004
-- 1.0 since mid 2015, currently 1.18
+- 1.0 since mid 2015, currently 1.26
 - Promise I: Memory leak free programming
 - Promise II: Safe multi-threading programming
 - Promise III: Zero Cost Abstractions
@@ -21,7 +22,7 @@ Periklis Tsirakidis & Stefan Lau
 
 ---
 
-## How Rust fulfills its promises?
+## How it keeps its promises
 
 - Simple rules for pointer aliasing and data mutation
 - Rules enforced through a sophisticated type system
@@ -43,7 +44,7 @@ No null pointer dereferences
 
 ### Null Pointer in C/C++: A billion dollar mistake
 
-```
+```c
 obj* func_and_alloc() {...}
 
 int main(int argc, char* argv[]) {
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) {
 
 ### In Rust we love RAII and Option< T >
 
-```
+```rust
 fn func() -> Option<T> {...}
 
 fn main () {
@@ -75,6 +76,7 @@ fn main () {
 }
 
 ```
+In Rust all types are sized and leave on the stack except you need the heap for e.g dynamic sized types.
 
 ---
 
@@ -86,7 +88,7 @@ No dangling pointers
 
 ### C/C++: Dangling Pointer Strikes Back
 
-```
+```c
 void borrow_to_friend(char* buf) {
     // process buffer
     free(buf);
@@ -104,7 +106,7 @@ int main(int argc, char* argv[]) {
 
 ### Rust I: Move me, clone me, drop me
 
-```
+```rust
 fn give_to_friend(book: String) { } // Drop book
 
 fn main {
@@ -122,11 +124,13 @@ fn main {
 } // Drop other_book, empty same_book and empty book
 ```
 
+[Link to the playground](https://play.rust-lang.org/?gist=db39948f76b97034cf841cc18b905abe&version=stable&mode=debug)
+
 ----
 
 ### Rust II: Borrow me a reference
 
-```
+```c
 // str is string slice type: &[]
 fn borrow_to_a_friend(str: str) {
     borrow_to_friends_friend(&str.as_bytes());
@@ -147,7 +151,7 @@ fn main() {
 
 ### Rust III: Take me mutable but nobody else
 
-```
+```rust
 fn add_apocalypse_date(str: mut str) {}
 
 fn main() {
@@ -171,7 +175,7 @@ No buffer overruns
 
 ### C/C++: Programmers overrun buffers
 
-```
+```c
 void check_str(char* buf, int len) {
     for(int i = 0; i <= len; i++) {
         // buf[i]
@@ -192,19 +196,20 @@ int main(int arc, char* argv[]) {
 
 ### Rust: Take a slice leave the rest
 
-```
-fn check_str(str: str) {}
+```rust
+fn check_str(str: &str) {}
 
 fn main() {
-    let book = String::from("Learn Slicing in 21 Days");
+    let book = "Learn Slicing in 21 Days";
 
-    check_str(&[0..4]);
+    check_str(&book[0..4]);
 }
 ```
+[Link to playground](https://play.rust-lang.org/?gist=bfcaed6c6d1e081824e655c27f0f2c6c&version=stable&mode=debug)
 
 ---
 
-## Safe Multi-threading by default
+## Safe Multi-Threading By Default
 
 ----
 
@@ -216,8 +221,97 @@ fn main() {
   - Or you borrow any immutable references
   - Or you borrow only once a mutable reference
 - Let the compiler check the rules FTW
-- MPSC: Share messages not data
-- Mutex< T >, Arc< T >
+
+----
+
+### Supported concurrency models
+
+- Stdlib support (e.g. Sync, Send Traits)
+- Message passing support (e.g. MPSC)
+- Sychronization primitives (e.g. Mutex< T >, Arc< T >)
+- Parallel data structures/Collections (e.g. Rayon)
+- Actors model (e.g. actix)
+- Futures, Async/Await (Still immature)
+
+
+---
+
+## Zero Cost Abstractions
+
+----
+
+### Functional Programming Concepts
+
+- Pattern Matching for enums and structs
+- Error handling & propagation
+- Null safety
+- Traits & Typeclasses w/o memory overhead
+
+
+Note:
+- Enums are named Sum Types
+- Structs are named Product Types
+- Arrays are homogenous Product Types
+- Tuples are anonymous Product Types
+- Traits are equivalent to Typeclasses
+
+----
+
+### Enums & Pattern Matching
+
+```rust
+enum Door {
+  Opened,
+  Closed,
+  Broken(String)
+}
+
+fn check_door(door: &Door) -> () {
+  match door {
+    Door::Opened          => println!("Door is opened"),
+    Door::Closed          => println!("Door is closed"),
+    Door::Broken(burglar) =>
+      println!("Door is broken by {:?}", burglar),
+  }
+}
+```
+[Link to the Playground](https://play.rust-lang.org/?gist=23582899db9202a06a6b3b6aad3ded20&version=stable&mode=debug)
+
+----
+
+### Error Handling & propagation
+
+```rust
+enum Door {
+  Opened,
+  Closed
+}
+
+fn is_valid(from: &Door, to: &Door) -> Result<String, String> {
+  match (from, to) {
+    (Door::Opened, Door::Closed) => Ok("Transition accepted".to_string()),
+    (Door::Opened, Door::Opened) => Err("Transition not possiple".to_string()),
+    (Door::Closed, Door::Opened) => Ok("Transition accepted".to_string()),
+    (Door::Closed, Door::Closed) => Err("Transition not possible".to_string())
+  }
+}
+
+fn check_door(from: &Door, to: &Door) -> Result<String, String> {
+  let res = is_valid(from, to)?;
+  Ok(res)
+}
+```
+[Link to the Playground](https://play.rust-lang.org/?gist=165e12ca1e7d2c8f12a2b1af3673d51b&version=stable&mode=debug)
+
+----
+
+### Trait, Typeclasses & Composition
+
+
+---
+
+## Rust Ecosystem
+
 
 ---
 
@@ -265,9 +359,11 @@ fn main() {
 
 # So long and thanks for the fish!
 
-Periklis Tsirakidis
+Periklis Tsirakidis & Stefan Lau
 
-Github: github.com/periklis
+Github:
+- github.com/periklis
+- github.com/???
 
 ---
 
@@ -275,6 +371,7 @@ Github: github.com/periklis
 
 - [Jim Blady - Why Rust?](http://www.oreilly.com/programming/free/files/why-rust.pdf)
 - [Aaron Turon - Standford Seminar on Rust Lang](https://www.youtube.com/watch?v=O5vzLKg7y-k)
+- [Rust for Functional Programmers](http://science.raphael.poss.name/rust-for-functional-programmers.html)
 - [Repository - Rust-Learning](https://github.com/ctjhoa/rust-learning)
 - [Rust by Example](https://rustbyexample.com/)
 - [Official Rust Land Documentation](https://doc.rust-lang.org/book/second-edition/ch01-00-introduction.html)
