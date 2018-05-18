@@ -233,6 +233,73 @@ fn main() {
 - Actors model (e.g. actix)
 - Futures, Async/Await (Still immature)
 
+---
+
+## Basic Types
+
+----
+
+### Numerical Types
+
+Scalar
+```rust
+char
+u8, u16, u32, ...
+i8, i16, i32, ...
+usize
+```
+
+Floating Point
+```rust
+f32, f64
+```
+
+----
+
+### Compound types
+
+Enums
+```rust
+enum Door { Opened, Closed, Broken(String) }
+```
+
+Tuples
+```rust
+(u32, u32)
+```
+
+Structs
+```rust
+struct Point { x: f64, y: f64 }
+```
+
+Fixed Size Arrays
+```rust
+let u: [u8; 16] = [0; 16];
+```
+
+----
+
+### Collections
+
+Vectors
+```rust
+let v: Vec<u32> = vec!(1, 2, 3);
+```
+
+String
+```rust
+let s: String = String::from("test");
+```
+
+HashMap
+```rust
+use std::collections::HashMap;
+
+let mut s: HashMap<&str, &str> = HashMap::new();
+s.insert("presenter1", "Peri");
+s.insert("presenter2", "Stefan");
+```
 
 ---
 
@@ -279,6 +346,31 @@ fn check_door(door: &Door) -> () {
 
 ----
 
+### Structs & Pattern Matching
+
+```rust
+struct Point {
+  x: f64,
+  y: f64
+}
+
+fn get_x(point: Option<Point>) -> Option<f64> {
+  match point {
+    Some(Point { x, .. }) => Some(x),
+    None              => None
+  }
+}
+
+fn main() {
+    let point = Point { x: 0.0, y: 1.0 };
+    println!("{:?}", get_x(Some(point)));
+}
+```
+
+[Link to the Playground](https://play.rust-lang.org/?gist=502b76e8e8e8208e2f4cad368e921971&version=stable&mode=debug)
+
+----
+
 ### Error Handling & propagation
 
 ```rust
@@ -305,13 +397,195 @@ fn check_door(from: &Door, to: &Door) -> Result<String, String> {
 
 ----
 
-### Trait, Typeclasses & Composition
+### Traits I
 
+```rust
+trait NeedsFixing {
+    fn needs_fixing(&self) -> bool;
+}
+
+enum Door {
+  Opened,
+  Closed,
+  Broken(String)
+}
+
+impl NeedsFixing for Door {
+    fn needs_fixing(&self) -> bool {
+        match self {
+            Door::Broken(_) => true,
+            _ => false
+        }
+    }
+}
+
+struct Machine {
+    running: bool,
+    total_belts: u32,
+    failed_belts: u32
+}
+
+impl NeedsFixing for Machine {
+    fn needs_fixing(&self) -> bool {
+        self.failed_belts > 0
+    }
+}
+
+fn main() {
+    println!("{}", Door::Opened.needs_fixing());
+    println!("{}", Door::Broken(String::from("Stefan")).needs_fixing());
+    println!("{}", Machine { running: true, total_belts: 2, failed_belts: 1 }.needs_fixing());
+}
+```
+
+[Link to the Playground](https://play.rust-lang.org/?gist=3a37c0444ccca650aa0b239f0b2deb3a&version=stable&mode=debug)
+
+----
+
+### Traits II
+
+```rust
+trait NeedsParts {
+    type Part;
+
+    fn needs_parts(&self) -> Vec<Self::Part>;
+}
+
+#[derive(Clone, Debug)]
+enum DoorPart {
+    Handle,
+    Wood
+}
+
+enum Door {
+  Opened,
+  Closed,
+  Broken(DoorPart)
+}
+
+impl NeedsParts for Door {
+    type Part = DoorPart;
+
+    fn needs_parts(&self) -> Vec<Self::Part> {
+        match self {
+            Door::Broken(DoorPart::Handle) => vec!(DoorPart::Handle),
+            Door::Broken(DoorPart::Wood) => vec!(DoorPart::Wood),
+            _ => vec!()
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct Belt;
+
+struct Machine {
+    running: bool,
+    total_belts: u32,
+    failed_belts: u32
+}
+
+impl NeedsParts for Machine {
+    type Part = Belt;
+
+    fn needs_parts(&self) -> Vec<Self::Part> {
+        vec![Belt; self.failed_belts as usize]
+    }
+}
+
+fn main() {
+    println!("{:?}", Door::Opened.needs_parts());
+    println!("{:?}", Door::Broken(DoorPart::Handle).needs_parts());
+    println!("{:?}", Machine { running: true, total_belts: 2, failed_belts: 2 }.needs_parts());
+}
+```
+
+[Link to the Playground](https://play.rust-lang.org/?gist=3a0c1d73d86ef07d09841378ab765a75&version=stable&mode=debug)
+
+----
+
+### Generic Types
+
+```rust
+fn identity<T>(item: T) -> T {
+    item
+}
+
+trait Fuck {
+    fn fuck(&self) -> ();
+}
+
+impl<T: std::fmt::Debug> Fuck for T {
+    fn fuck(&self) -> () {
+        println!("Fuck {:?} in particular", self);
+    }
+}
+
+fn main() {
+    println!("{:?}, {:?}, {:?}", identity(1), identity("test"), identity(Some("test")));
+    1.fuck();
+    "test".fuck();
+    Some("test").fuck();
+}
+```
+
+[Link to the Playground](https://play.rust-lang.org/?gist=57c07af2a0a6860f2cb816eeda22733f&version=stable&mode=debug)
+
+---
+
+## Rust Ergonomics
+
+- Type inference: [Example](https://play.rust-lang.org/?gist=b9a713507cc475b0988d620920972c12&version=stable&mode=debug)
+- Lifetime elision: [Example](https://play.rust-lang.org/?gist=34871f0f2709cbe3428ccb33f1edfb4b&version=stable&mode=debug)
+- Propagating errors: [Example](https://play.rust-lang.org/?gist=fb2028e83d08353dc74b5058a77d2531&version=stable&mode=debug)
+- Compiler error messages: [Example1](https://play.rust-lang.org/?gist=a937854c15c4b4e9374090a0bd2cbf39&version=stable&mode=debug) [Example2](https://play.rust-lang.org/?gist=bae6bd9f85906d8cfa9249eb99cf6fba&version=stable&mode=debug)
+- Strong focus on backwards compatibility
 
 ---
 
 ## Rust Ecosystem
 
+----
+
+### Cargo
+
+- Package (crate) manager: `cargo update`
+- Build system: `cargo build`
+- Test runner: `cargo test`
+- Documentation: `cargo doc`
+- Extendable: E.g. `cargo-vendor`, `cargo-profiler`
+
+----
+
+### Crates.io
+
+- [Link](https://crates.io)
+- Central crate registry
+- Example (important) crates:
+  - serde: Serialization / Deserialization
+  - regex: Regular Expressions
+  - libc: FFI types
+  - futures: Implementation of futures / streams
+  - tokio: Runtime for async applications
+  - rayon: Data-parallelism library
+
+
+----
+
+### Docs.rs
+
+- [Link](https://docs.rs)
+- Central website for documenation for crates
+- Auto-generated documentation for every crate published to crates.io
+- Documentation can be extended by using documentation comments
+
+----
+
+### Other
+
+- Rustup: Toolchain manager
+- Rust Language Server: Implementation of language server protocol for editors
+- rustfmt: Code formatter
+- [Rfcs](https://github.com/rust-lang/rfcs): Discussions about further development of the language
 
 ---
 
@@ -363,7 +637,7 @@ Periklis Tsirakidis & Stefan Lau
 
 Github:
 - github.com/periklis
-- github.com/???
+- github.com/selaux
 
 ---
 
