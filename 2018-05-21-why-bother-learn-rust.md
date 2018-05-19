@@ -1,6 +1,6 @@
 ---
 author:
-- Periklis Tsirakidis
+- Periklis Tsirakidis & Stefan Lau
 title: Why bother and learn Rust?
 theme: solarized
 ---
@@ -124,19 +124,19 @@ fn main {
 } // Drop other_book, empty same_book and empty book
 ```
 
-[Link to the playground](https://play.rust-lang.org/?gist=db39948f76b97034cf841cc18b905abe&version=stable&mode=debug)
+[Playground link](https://play.rust-lang.org/?gist=db39948f76b97034cf841cc18b905abe&version=stable&mode=debug)
 
 ----
 
 ### Rust II: Borrow me a reference
 
-```c
+```rust
 // str is string slice type: &[]
-fn borrow_to_a_friend(str: str) {
-    borrow_to_friends_friend(&str.as_bytes());
+fn borrow_to_a_friend(str: &str) {
+    borrow_to_a_friends_friend(&str.as_bytes());
 }
 
-fn borrow_to_a_friends_friend(buf: &[u8]){}
+fn borrow_to_a_friends_friend(_buf: &[u8]){}
 
 fn main() {
     // Move temporary to book_title
@@ -146,24 +146,26 @@ fn main() {
     borrow_to_a_friend(&book_title);
 }
 ```
-
+[Playground link](https://play.rust-lang.org/?gist=4a072aca73115e14fc3091fa74542509&version=stable&mode=debug)
 ----
 
 ### Rust III: Take me mutable but nobody else
 
 ```rust
-fn add_apocalypse_date(str: mut str) {}
+fn add_apocalypse_date(str: &mut str){
+    // ERROR
+    add_another_apocalypse_date(&mut str);
+}
+
+fn add_another_apocalypse_date(_str: &mut str) {}
 
 fn main() {
     let mut book_title = String::from("Apocalypse");
 
     add_apocalypse_date(&mut book_title);
-
-    // ERROR
-    let other_apocalypse = &mut book_title;
 }
-
 ```
+[Playground link](https://play.rust-lang.org/?gist=3a7a72deaea33480d83db654de9d07c6&version=stable&mode=debug)
 
 ---
 
@@ -205,7 +207,7 @@ fn main() {
     check_str(&book[0..4]);
 }
 ```
-[Link to playground](https://play.rust-lang.org/?gist=bfcaed6c6d1e081824e655c27f0f2c6c&version=stable&mode=debug)
+[Playground link](https://play.rust-lang.org/?gist=bfcaed6c6d1e081824e655c27f0f2c6c&version=stable&mode=debug)
 
 ---
 
@@ -227,7 +229,7 @@ fn main() {
 ### Supported concurrency models
 
 - Stdlib support (e.g. Sync, Send Traits)
-- Message passing support (e.g. MPSC)
+- Message passing support (e.g. MPSC, MPMC)
 - Sychronization primitives (e.g. Mutex< T >, Arc< T >)
 - Parallel data structures/Collections (e.g. Rayon)
 - Actors model (e.g. actix)
@@ -342,7 +344,7 @@ fn check_door(door: &Door) -> () {
   }
 }
 ```
-[Link to the Playground](https://play.rust-lang.org/?gist=23582899db9202a06a6b3b6aad3ded20&version=stable&mode=debug)
+[Playground link](https://play.rust-lang.org/?gist=23582899db9202a06a6b3b6aad3ded20&version=stable&mode=debug)
 
 ----
 
@@ -367,7 +369,7 @@ fn main() {
 }
 ```
 
-[Link to the Playground](https://play.rust-lang.org/?gist=502b76e8e8e8208e2f4cad368e921971&version=stable&mode=debug)
+[Playground link](https://play.rust-lang.org/?gist=502b76e8e8e8208e2f4cad368e921971&version=stable&mode=debug)
 
 ----
 
@@ -393,7 +395,7 @@ fn check_door(from: &Door, to: &Door) -> Result<String, String> {
   Ok(res)
 }
 ```
-[Link to the Playground](https://play.rust-lang.org/?gist=165e12ca1e7d2c8f12a2b1af3673d51b&version=stable&mode=debug)
+[Playground link](https://play.rust-lang.org/?gist=165e12ca1e7d2c8f12a2b1af3673d51b&version=stable&mode=debug)
 
 ----
 
@@ -438,7 +440,7 @@ fn main() {
 }
 ```
 
-[Link to the Playground](https://play.rust-lang.org/?gist=3a37c0444ccca650aa0b239f0b2deb3a&version=stable&mode=debug)
+[Playground link](https://play.rust-lang.org/?gist=3a37c0444ccca650aa0b239f0b2deb3a&version=stable&mode=debug)
 
 ----
 
@@ -499,7 +501,7 @@ fn main() {
 }
 ```
 
-[Link to the Playground](https://play.rust-lang.org/?gist=3a0c1d73d86ef07d09841378ab765a75&version=stable&mode=debug)
+[Playground link](https://play.rust-lang.org/?gist=3a0c1d73d86ef07d09841378ab765a75&version=stable&mode=debug)
 
 ----
 
@@ -528,7 +530,7 @@ fn main() {
 }
 ```
 
-[Link to the Playground](https://play.rust-lang.org/?gist=57c07af2a0a6860f2cb816eeda22733f&version=stable&mode=debug)
+[Playground link](https://play.rust-lang.org/?gist=57c07af2a0a6860f2cb816eeda22733f&version=stable&mode=debug)
 
 ---
 
@@ -613,14 +615,15 @@ fn main() {
 
 ## Why important for web engineering?
 
-- Rust enables the same productivity thanks to Cargo, Crates, Rustup, Rustc
-- Targets futures/async/await like Scala/Finagle (Currently on Nightly only, est. release end 2017)
+- Rust enables great productivity thanks to Cargo, Crates, Rustup
+- Targets futures/async/await like Scala/Finagle (Currently on Nightly only, est. release mid 2018)
 - Support for cross compilation targets: MSVC, IOS, ARM (IoT), WebAssembly & [more](https://forge.rust-lang.org/platform-support.html)
 
 ---
 
 ## Rust Key Facts
 
+- FP Support with C-Model integration!
 - Express Ownership explicitly!
 - No dangling but borrowing down the stack!
 - No overruns but trust your slice!
@@ -631,7 +634,7 @@ fn main() {
 
 ---
 
-# So long and thanks for the fish!
+## So long and thanks for the fish!
 
 Periklis Tsirakidis & Stefan Lau
 
@@ -645,6 +648,7 @@ Github:
 
 - [Jim Blady - Why Rust?](http://www.oreilly.com/programming/free/files/why-rust.pdf)
 - [Aaron Turon - Standford Seminar on Rust Lang](https://www.youtube.com/watch?v=O5vzLKg7y-k)
+- [Rust 2018 - An Epochal Release](https://www.infoq.com/presentations/rust-2018)
 - [Rust for Functional Programmers](http://science.raphael.poss.name/rust-for-functional-programmers.html)
 - [Repository - Rust-Learning](https://github.com/ctjhoa/rust-learning)
 - [Rust by Example](https://rustbyexample.com/)
