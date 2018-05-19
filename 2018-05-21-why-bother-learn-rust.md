@@ -15,6 +15,7 @@ Periklis Tsirakidis & Stefan Lau
 
 - Systems Programming Language since 2004
 - 1.0 since mid 2015, currently 1.26
+- No 2.0 ever! But Epoch 2018, ... releases!
 - Promise I: Memory leak free programming
 - Promise II: Safe multi-threading programming
 - Promise III: Zero Cost Abstractions
