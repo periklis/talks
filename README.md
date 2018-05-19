@@ -7,6 +7,8 @@ An introductory talk to how the Rust ecosystems handles web workloads and a comp
 
 ## Slack Time 2018
 
+### [Why bother and learn Rust? 2018 Edition](./public//2018-05-21-why-bother-learn-rust)
+
 ### [Deep Dive into NixPkgs Bootstrap Process](./public/2018-05-09-cop-nixos-deep-dive-nixpkgs)
 
 # 2017
