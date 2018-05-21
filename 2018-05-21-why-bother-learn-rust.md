@@ -229,12 +229,15 @@ fn main() {
 
 ### Supported concurrency models
 
-- Stdlib support (e.g. Sync, Send Traits)
-- Message passing support (e.g. MPSC, MPMC)
-- Sychronization primitives (e.g. Mutex< T >, Arc< T >)
-- Parallel data structures/Collections (e.g. Rayon)
-- Actors model (e.g. actix)
-- Futures, Async/Await (Still immature)
+| Model                       | Support                  |
+| -----------------------     | ------------------------ |
+| Type System                 | Sync, Send Traits        |
+| Message Passing             | MSPC, MPMC               |
+| Primitives                  | Mutex, RC, Atomics       |
+| Parallel datastructures     | Rayon                    |
+| Push-Based Model            | Actors (e.g actix)       |
+| Async I/O, Poll-Based Model | Futures, Async/Await     |
+
 
 ---
 
