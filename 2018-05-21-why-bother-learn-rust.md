@@ -653,6 +653,7 @@ Github:
 - [Rust for Functional Programmers](http://science.raphael.poss.name/rust-for-functional-programmers.html)
 - [Repository - Rust-Learning](https://github.com/ctjhoa/rust-learning)
 - [Rust by Example](https://rustbyexample.com/)
+- [Rust Cookbook](https://rust-lang-nursery.github.io/rust-cookbook/)
 - [Official Rust Land Documentation](https://doc.rust-lang.org/book/second-edition/ch01-00-introduction.html)
 - [Official Cargo Guide](http://doc.crates.io/guide.html)
 - [Official Rust Lang Reference](https://doc.rust-lang.org/stable/reference/)
